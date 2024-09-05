@@ -14,13 +14,13 @@ export default class ApiService {
 
     /* This  register a new user */
     static async registerUser(registration) {
-        const response = await axios.post(`${this.BASE_URL}/auth/register`, registration)
+        const response = await axios.post(`${this.BASE_URL}/api/auth/register`, registration)
         return response.data
     }
 
     /* This  login a registered user */
     static async loginUser(loginDetails) {
-        const response = await axios.post(`${this.BASE_URL}/auth/login`, loginDetails)
+        const response = await axios.post(`${this.BASE_URL}/api/auth/login`, loginDetails)
         return response.data
     }
 

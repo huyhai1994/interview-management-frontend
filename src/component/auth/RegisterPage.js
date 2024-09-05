@@ -1,53 +1,40 @@
-import React, {useState} from 'react'
+import React, {useState} from 'react';
 import {useNavigate} from "react-router-dom";
 import ApiService from "../../service/ApiService";
+import {ErrorMessage, Field, Form, Formik} from 'formik';
+import * as Yup from 'yup';
+import {Box, Button, Container, Grid, Link, TextField, Typography} from "@mui/material";
 
 const RegisterPage = () => {
     const navigate = useNavigate();
 
-    const [formData, setFormData] = useState({
+    const [errorMessage, setErrorMessage] = useState('');
+    const [successMessage, setSuccessMessage] = useState('');
+
+    const initialValues = {
         name: '',
         email: '',
         password: '',
         phoneNumber: ''
+    };
+
+    const validationSchema = Yup.object({
+        name: Yup.string().required('Name is required'),
+        email: Yup.string().email('Invalid email format').required('Email is required'),
+        password: Yup.string().required('Password is required'),
+        phoneNumber: Yup.string().required('Phone Number is required')
     });
 
-    const [errorMessage, setErrorMessage] = useState('');
-    const [successMessage, setSuccessMessage] = useState('');
-
-    const handleInputChange = (e) => {
-        const {name, value} = e.target;
-        setFormData({...formData, [name]: value});
-    };
-
-    const validateForm = () => {
-        const {name, email, password, phoneNumber} = formData;
-        if (!name || !email || !password || !phoneNumber) {
-            return false;
-        }
-        return true;
-    };
-
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        if (!validateForm()) {
-            setErrorMessage('Please fill all the fields.');
-            setTimeout(() => setErrorMessage(''), 5000);
-            return;
-        }
+    const handleSubmit = async (values, {setSubmitting, resetForm}) => {
+        setSubmitting(true);
         try {
             // Call the register method from ApiService
-            const response = await ApiService.registerUser(formData);
+            const response = await ApiService.registerUser(values);
 
             // Check if the response is successful
             if (response.statusCode === 200) {
                 // Clear the form fields after successful registration
-                setFormData({
-                    name: '',
-                    email: '',
-                    password: '',
-                    phoneNumber: ''
-                });
+                resetForm();
                 setSuccessMessage('User registered successfully');
                 setTimeout(() => {
                     setSuccessMessage('');
@@ -58,38 +45,95 @@ const RegisterPage = () => {
             setErrorMessage(error.response?.data?.message || error.message);
             setTimeout(() => setErrorMessage(''), 5000);
         }
+        setSubmitting(false);
     };
 
     return (
-        <div className="auth-container">
-            {errorMessage && <p className="error-message">{errorMessage}</p>}
-            {successMessage && <p className="success-message">{successMessage}</p>}
-            <h2>Sign Up</h2>
-            <form onSubmit={handleSubmit}>
-                <div className="form-group">
-                    <label>Name:</label>
-                    <input type="text" name="name" value={formData.name} onChange={handleInputChange} required/>
-                </div>
-                <div className="form-group">
-                    <label>Email:</label>
-                    <input type="email" name="email" value={formData.email} onChange={handleInputChange} required/>
-                </div>
-                <div className="form-group">
-                    <label>Phone Number:</label>
-                    <input type="text" name="phoneNumber" value={formData.phoneNumber} onChange={handleInputChange}
-                           required/>
-                </div>
-                <div className="form-group">
-                    <label>Password:</label>
-                    <input type="password" name="password" value={formData.password} onChange={handleInputChange}
-                           required/>
-                </div>
-                <button type="submit">Register</button>
-            </form>
-            <p className="register-link">
-                Already have an account? <a href="/login">Login</a>
-            </p>
-        </div>
+        <Container component="main" maxWidth="xs">
+            <Box sx={{marginTop: 8, display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
+                <Typography component="h1" variant="h5">
+                    Register
+                </Typography>
+                {errorMessage && <Typography color="error">{errorMessage}</Typography>}
+                {successMessage && <Typography color="primary">{successMessage}</Typography>}
+                <Formik
+                    initialValues={initialValues}
+                    validationSchema={validationSchema}
+                    onSubmit={handleSubmit}
+                >
+                    {({isSubmitting}) => (
+                        <Form>
+                            <Box sx={{mt: 1}}>
+                                <Field
+                                    as={TextField}
+                                    margin="normal"
+                                    required
+                                    fullWidth
+                                    id="name"
+                                    label="Name"
+                                    name="name"
+                                    autoComplete="name"
+                                    autoFocus
+                                    helperText={<ErrorMessage name="name"/>}
+                                />
+                                <Field
+                                    as={TextField}
+                                    margin="normal"
+                                    required
+                                    fullWidth
+                                    id="email"
+                                    label="Email Address"
+                                    name="email"
+                                    autoComplete="email"
+                                    helperText={<ErrorMessage name="email"/>}
+                                />
+                                <Field
+                                    as={TextField}
+                                    margin="normal"
+                                    required
+                                    fullWidth
+                                    name="password"
+                                    label="Password"
+                                    type="password"
+                                    id="password"
+                                    autoComplete="current-password"
+                                    helperText={<ErrorMessage name="password"/>}
+                                />
+                                <Field
+                                    as={TextField}
+                                    margin="normal"
+                                    required
+                                    fullWidth
+                                    name="phoneNumber"
+                                    label="Phone Number"
+                                    type="text"
+                                    id="phoneNumber"
+                                    autoComplete="phoneNumber"
+                                    helperText={<ErrorMessage name="phoneNumber"/>}
+                                />
+                                <Button
+                                    type="submit"
+                                    fullWidth
+                                    variant="contained"
+                                    sx={{mt: 3, mb: 2}}
+                                    disabled={isSubmitting}
+                                >
+                                    Register
+                                </Button>
+                                <Grid container justifyContent="flex-end">
+                                    <Grid item>
+                                        <Link href="/login" variant="body2">
+                                            Already have an account? Sign in
+                                        </Link>
+                                    </Grid>
+                                </Grid>
+                            </Box>
+                        </Form>
+                    )}
+                </Formik>
+            </Box>
+        </Container>
     );
-}
-export default RegisterPage
+};
+
+export default RegisterPage;
