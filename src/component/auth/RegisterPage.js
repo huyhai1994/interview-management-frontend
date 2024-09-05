@@ -1,15 +1,17 @@
 import React, {useState} from 'react';
-import {useNavigate} from "react-router-dom";
+import {useNavigate} from 'react-router-dom';
 import ApiService from "../../service/ApiService";
 import {ErrorMessage, Field, Form, Formik} from 'formik';
 import * as Yup from 'yup';
-import {Box, Button, Container, Grid, Link, TextField, Typography} from "@mui/material";
+import {Box, Button, Container, Grid, IconButton, InputAdornment, Link, TextField, Typography} from "@mui/material";
+import Visibility from '@mui/icons-material/Visibility';
+import VisibilityOff from '@mui/icons-material/VisibilityOff';
 
 const RegisterPage = () => {
     const navigate = useNavigate();
-
     const [errorMessage, setErrorMessage] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
 
     const initialValues = {
         name: '',
@@ -28,12 +30,8 @@ const RegisterPage = () => {
     const handleSubmit = async (values, {setSubmitting, resetForm}) => {
         setSubmitting(true);
         try {
-            // Call the register method from ApiService
             const response = await ApiService.registerUser(values);
-
-            // Check if the response is successful
             if (response.statusCode === 200) {
-                // Clear the form fields after successful registration
                 resetForm();
                 setSuccessMessage('User registered successfully');
                 setTimeout(() => {
@@ -46,6 +44,10 @@ const RegisterPage = () => {
             setTimeout(() => setErrorMessage(''), 5000);
         }
         setSubmitting(false);
+    };
+
+    const togglePasswordVisibility = () => {
+        setShowPassword(!showPassword);
     };
 
     return (
@@ -94,10 +96,22 @@ const RegisterPage = () => {
                                     fullWidth
                                     name="password"
                                     label="Password"
-                                    type="password"
+                                    type={showPassword ? 'text' : 'password'}
                                     id="password"
                                     autoComplete="current-password"
                                     helperText={<ErrorMessage name="password"/>}
+                                    InputProps={{
+                                        endAdornment: (
+                                            <InputAdornment position="end">
+                                                <IconButton
+                                                    aria-label="toggle password visibility"
+                                                    onClick={togglePasswordVisibility}
+                                                >
+                                                    {showPassword ? <VisibilityOff/> : <Visibility/>}
+                                                </IconButton>
+                                            </InputAdornment>
+                                        )
+                                    }}
                                 />
                                 <Field
                                     as={TextField}
@@ -120,7 +134,7 @@ const RegisterPage = () => {
                                 >
                                     Register
                                 </Button>
-                                <Grid container justifyContent="flex-end">
+                                <Grid container justifyContent="center">
                                     <Grid item>
                                         <Link href="/login" variant="body2">
                                             Already have an account? Sign in
